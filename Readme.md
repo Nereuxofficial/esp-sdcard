@@ -13,7 +13,7 @@ When flashing the ESP32, you need to disconnect the SD Card from the ESP32.
 ## Usage
 1. Install [espup](https://github.com/esp-rs/espup)
 2. Run `espup install` and follow its instructions
-3. Install [espflash](https://github.com/esp-rs/espflash/
+3. Install [espflash](https://github.com/esp-rs/espflash/)
 4. Run `cargo run`
 Your output should be similar to this:
 ```
