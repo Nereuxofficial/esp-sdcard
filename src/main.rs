@@ -4,9 +4,8 @@
 
 extern crate alloc;
 
-use alloc::vec;
 use core::mem::MaybeUninit;
-use embedded_sdmmc::{File, Mode, VolumeIdx};
+use embedded_sdmmc::{Mode, VolumeIdx};
 use esp_backtrace as _;
 use esp_println::println;
 use hal::spi::master::Spi;
@@ -67,7 +66,7 @@ fn main() -> ! {
     let mosi = io.pins.gpio15;
     let cs = io.pins.gpio13.into_push_pull_output();
 
-    let mut spi = Spi::new_no_cs(
+    let spi = Spi::new_no_cs(
         peripherals.SPI2,
         sclk,
         mosi,
@@ -83,7 +82,7 @@ fn main() -> ! {
 
     let mut volume_manager = embedded_sdmmc::VolumeManager::new(sdcard, FakeTimesource());
 
-    let mut volume0 = volume_manager.open_volume(VolumeIdx(0)).unwrap();
+    let volume0 = volume_manager.open_volume(VolumeIdx(0)).unwrap();
     println!("Volume 0: {:?}", volume0);
     let root_dir = volume_manager.open_root_dir(volume0).unwrap();
     if let Ok(file) = volume_manager.open_file_in_dir(root_dir, "MY_FILE.TXT", Mode::ReadOnly) {
