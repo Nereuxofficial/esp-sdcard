@@ -3,13 +3,15 @@
 #![no_main]
 
 extern crate alloc;
+
+use alloc::vec;
 use core::mem::MaybeUninit;
-use embedded_sdmmc::VolumeIdx;
+use embedded_sdmmc::{File, Mode, VolumeIdx};
 use esp_backtrace as _;
 use esp_println::println;
-use hal::{clock::ClockControl, peripherals::Peripherals, prelude::*, Delay, IO};
 use hal::spi::master::Spi;
 use hal::spi::SpiMode;
+use hal::{clock::ClockControl, peripherals::Peripherals, prelude::*, Delay, IO};
 
 #[global_allocator]
 static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
@@ -65,7 +67,15 @@ fn main() -> ! {
     let mosi = io.pins.gpio15;
     let cs = io.pins.gpio13.into_push_pull_output();
 
-    let mut spi = Spi::new_no_cs(peripherals.SPI2, sclk, mosi, miso, 1000u32.kHz(), SpiMode::Mode0, &clocks);
+    let mut spi = Spi::new_no_cs(
+        peripherals.SPI2,
+        sclk,
+        mosi,
+        miso,
+        1000u32.kHz(),
+        SpiMode::Mode0,
+        &clocks,
+    );
     println!("SPI initialized. Initializing SD-Card...");
     let sdcard = embedded_sdmmc::sdcard::SdCard::new(spi, cs, delay);
 
@@ -74,8 +84,11 @@ fn main() -> ! {
     let mut volume_manager = embedded_sdmmc::VolumeManager::new(sdcard, FakeTimesource());
 
     let mut volume0 = volume_manager.open_volume(VolumeIdx(0)).unwrap();
-
-
+    println!("Volume 0: {:?}", volume0);
+    let root_dir = volume_manager.open_root_dir(volume0).unwrap();
+    if let Ok(file) = volume_manager.open_file_in_dir(root_dir, "MY_FILE.TXT", Mode::ReadOnly) {
+        println!("File opened: {:?}", file);
+    }
     // setup logger
     // To change the log_level change the env section in .cargo/config.toml
     // or remove it and set ESP_LOGLEVEL manually before running cargo run
